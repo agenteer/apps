@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>cURL to Cookies.txt Converter</title>
+</head>
+<body>
+    <h2>Paste cURL Command</h2>
+    <textarea id="curlInput" rows="10" cols="100" placeholder="Paste cURL command here..."></textarea>
+    <br>
+    <button onclick="convertToCookiesTxt()">Generate cookies.txt</button>
+    <a id="downloadLink" style="display:none;">Download cookies.txt</a>
+    
+    <script>
+        function convertToCookiesTxt() {
+            const input = document.getElementById("curlInput").value;
+            
+            // Extract URL
+            const urlMatch = input.match(/curl '(https?:\/\/[^\/]+)\//i);
+            if (!urlMatch) {
+                alert("No valid URL found in input!");
+                return;
+            }
+            let domain = urlMatch[1].replace(/^https?:\/\//, '').replace(/^www\./, '');
+            
+            // Extract cookies
+            const cookieMatch = input.match(/-H 'cookie: ([^']+)'/i);
+            if (!cookieMatch) {
+                alert("No cookies found in input!");
+                return;
+            }
+            
+            const cookies = cookieMatch[1].split('; ');
+            let cookiesTxt = "# Netscape HTTP Cookie File\n";
+            cookies.forEach(cookie => {
+                const [name, value] = cookie.split('=');
+                cookiesTxt += `${domain}\tTRUE\t/\tFALSE\t0\t${name}\t${value}\n`;
+            });
+            
+            const blob = new Blob([cookiesTxt], { type: "text/plain" });
+            const url = URL.createObjectURL(blob);
+            
+            const downloadLink = document.getElementById("downloadLink");
+            downloadLink.href = url;
+            downloadLink.download = "cookies.txt";
+            downloadLink.style.display = "block";
+            downloadLink.innerText = "Download cookies.txt";
+        }
+    </script>
+</body>
+</html>
